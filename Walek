@@ -1,0 +1,150 @@
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+#include "winbgi2.h"
+
+void main()
+{
+	//Zadane parametry w jednostkach SI
+	double F = 300.0;
+	double Q = 120.0;
+	double fi2 = 195*3.1415/180;
+	double S = 35.5;								//naciąg wstępny
+	double Sx = S * cos(fi2 / 2);
+	double Sz = S * sin(fi2 / 2);
+	double l = 0.4;									//długość całkowita wałka
+	double l1 = 0.1;								//długość wentylator łożysko#1
+	double l2 = 0.3;								//długość wentylator łożysko#2
+	double kg0 = (240.0 / 4.5) * 1000000.0;			//stal St5
+	double ksj = (420.0 / 4.5) * 1000000.0;
+	double Ms = 4.5;
+
+	//Parametry wyliczone
+	double Rbx = -Sx * l / (l2 - l1);
+	double Rbz = (Sz*(l - l1) - Q * l1) / (l2 - l1);
+	double Rax = -Sx - Rbx;
+	double Ray = F;
+	double Raz = Sz + Q - Rbz;
+
+	//momenty gnace
+
+	double *Mg_yz, *Mg_xy, *Mg, *Mz, *d_teor;
+	double N = l / 0.005;
+	double N1 = l1 / 0.005;
+	double N2 = l2 / 0.005;
+	Mg_yz = (double*)malloc(N * sizeof(double));
+	Mg_xy = (double*)malloc(N * sizeof(double));
+	Mg = (double*)malloc(N * sizeof(double));
+	Mz = (double*)malloc(N * sizeof(double));
+	d_teor = (double*)malloc(N * sizeof(double));
+
+	//przedzial #1
+	for (int i=0; i<N1;i++)
+	{
+		double y = 0.005*i;
+		Mg_yz[i] = -Q * y;
+		Mg_xy[i] = 0.0;
+		Mg[i] = sqrt(Mg_yz[i] * Mg_yz[i] + Mg_xy[i] * Mg_xy[i]);
+		
+		//wyliczenie momentu zredukowanego
+		if (Mg[i] >= 2 * Ms)
+		{
+			Mz[i] = sqrt(Mg[i] * Mg[i] + 0.75 * Ms * Ms);
+			d_teor[i] = pow(10.2 * Mz[i] / kg0, 0.333);
+		}
+
+		else
+		{
+			Mz[i] = sqrt(Mg[i] * Mg[i] + 0.666 * Ms * Ms);
+			d_teor[i] = pow(5.1 *Mz[i] / ksj, 0.333);
+		}
+	}
+
+	//przedzial #2
+	for (int i = N1; i<N2; i++)
+	{
+		double y = 0.005*i;
+		Mg_yz[i] = (-Q + Raz) * y - Raz * l1;
+		Mg_xy[i] = Rax * (y - l1);
+		Mg[i] = sqrt(Mg_yz[i] * Mg_yz[i] + Mg_xy[i] * Mg_xy[i]);
+
+		//wyliczenie momentu zredukowanego
+		if (Mg[i] >= 2 * Ms)
+		{
+			Mz[i] = sqrt(Mg[i] * Mg[i] + 0.75*Ms*Ms);
+			d_teor[i] = pow(10.2*Mz[i] / kg0, 0.333);
+		}
+
+		else
+		{
+			Mz[i] = sqrt(Mg[i] * Mg[i] + 0.666 * Ms*Ms);
+			d_teor[i] = pow(5.1*Mz[i] / ksj, 0.333);
+		}
+	}
+
+	//przedzial #3
+	for (int i = N2; i<N; i++)
+	{
+		double y = 0.005*i;
+		Mg_yz[i] = (Raz + Rbz - Q)*y - Raz * l1 - Rbz * l2;
+		Mg_xy[i] = (Rax + Rbx)*y - Rax * l1 - Rbx * l2;
+		Mg[i] = sqrt(Mg_yz[i] * Mg_yz[i] + Mg_xy[i] * Mg_xy[i]);
+
+		//wyliczenie momentu zredukowanego
+		if (Mg[i] >= 2 * Ms)
+		{
+			Mz[i] = sqrt(Mg[i] * Mg[i] + 0.75*Ms*Ms);
+			d_teor[i] = pow(10.2*Mz[i] / kg0, 0.333);
+		}
+
+		else
+		{
+			Mz[i] = sqrt(Mg[i] * Mg[i] + 0.666 * Ms*Ms);
+			d_teor[i] = pow(5.1*Mz[i] / ksj, 0.333);
+		}
+	}
+
+	//znalezienie d_max do skalowania okna graficznego
+	double d_max = 0;
+
+	for (int i = 0; i <= N; i++)
+	{
+		if (d_teor[i] >= d_max)
+			d_max = d_teor[i];
+	}
+	//Przepisanie danych i wyświetlenie
+
+	graphics(800, 600);
+	scale(0, -500 * d_max - 10, l*1000 + 10, 500 * d_max + 10);
+
+	FILE *f;
+	f = fopen("walek.txt", "w");
+	
+	fprintf(f, "Zadane parametry\nF [N]\tQ [N]\tS [N]\tSx [N]\tSz [N]\tl [mm]\tl1 [mm]\tl2 [mm]\tfi2 [rad]\tkg0 [MPa]\tksj [Mpa]\n");
+	fprintf(f, "%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n\n", F, Q, S, Sx, Sz, l * 1000.0, l1 * 1000.0, l2 * 1000.0, fi2, kg0 / 1000000.0, ksj / 1000000.0);
+	fprintf(f, "Wyliczone parametry\nRax [N]\tRay [N]\tRaz [N]\tRbx [N]\tRbz [N]\n");
+	fprintf(f, "%lf\t%lf\t%lf\t%lf\t%lf\n\n", Rax, Ray, Raz, Rbx, Rbz);
+
+	fprintf(f, "L.p.\ty [mm]\tMg_yz(y) [Nm]\tMg_xy(y) [Nm]\tMs(y) [Nm]\tMg(y) [Nm]\tMz(y) [Nm]\td_teor [mm]\n");
+		
+	printf("Zadane parametry\nF [N]\tQ [N]\tS [N]\tSx [N]\tSz [N]\tl [mm]\tl1 [mm]\tl2 [mm]\tfi2 [rad]\tkg0 [MPa]\tksj [Mpa]\n");
+	printf("%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n\n", F, Q, S, Sx, Sz, l * 1000.0, l1 * 1000.0, l2 * 1000.0, fi2, kg0 / 1000000.0, ksj / 1000000.0);
+	printf("Wyliczone parametry\nRax [N]\tRay [N]\tRaz [N]\tRbx [N]\tRbz [N]\n");
+	printf("%lf\t%lf\t%lf\t%lf\t%lf\n\n", Rax, Ray, Raz, Rbx, Rbz);
+
+	printf("L.p.\ty [mm]\tMg_yz(y) [Nm]\tMg_xy(y) [Nm]\tMs(y) [Nm]\tMg(y) [Nm]\tMz(y) [Nm]\td_teor [mm]\n");
+
+	for (int i = 0; i < N; i++)
+	{
+		double y = 5*i;
+		fprintf(f, "%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n", i, y, Mg_yz[i], Mg_xy[i], Ms, Mg[i], Mz[i], d_teor[i]*1000.0);
+		printf("%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n", i, y, Mg_yz[i], Mg_xy[i], Ms, Mg[i], Mz[i], d_teor[i] * 1000.0);
+		setcolor(0.75);
+		point(y, d_teor[i]*500);
+		point(y, -d_teor[i] * 500);
+	}
+
+	fclose(f);
+
+	wait();
+}
