@@ -20,7 +20,7 @@ void main()
 	double Ms = 4.5;
 
 	//Parametry wyliczone
-	double Rbx = -Sx * l / (l2 - l1);
+	double Rbx = -Sx * (l - l1) / (l2 - l1);
 	double Rbz = (Sz*(l - l1) - Q * l1) / (l2 - l1);
 	double Rax = -Sx - Rbx;
 	double Ray = F;
