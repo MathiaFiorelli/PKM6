@@ -11,9 +11,9 @@ Sz = S * sin(fi2 / 2)
 l = 0.3                                            #długość całkowita wałka
 l1 = 0.1                                         #długość wentylator łożysko#1
 l2 = 0.15                                     #długość wentylator łożysko#2
-kg0 = (280.0 / 4.5) * 1000000.0;             #stal C45
-ksj = (480.0 / 4.5) * 1000000.0;
-Ms = 4.5;
+kg0 = (280.0 / 4.5) * 1000000.0             #stal C45
+ksj = (480.0 / 4.5) * 1000000.0
+Ms = 4.5
 
 #Parametry wyliczone
 Rbx = -Sx * (l - l1) / (l2 - l1)
@@ -47,62 +47,62 @@ print ('%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t' % ('
 print ('%10f\t%10f\t%10f\t%10f\t%10f\t%10f\t%10f\t%10f\t%10f\t%10f\t%10f\n\n' % (F, Q, S, Sx, Sz, l * 1000.0, l1 * 1000.0, l2 * 1000.0, fi2, kg0 / 1000000.0, ksj / 1000000.0))
 
 print ('Wyliczone parametry')
-print ('%10s\t%10s\t%10s\t%10s\t%10s\n' % ('Rax [N]', 'Ray [N]', 'Raz [N]', 'Rbx [N]', 'Rbz [N]')
-print ('%10f\t%10f\t%10f\t%10f\t%10f\n\n' % (Rax, Ray, Raz, Rbx, Rbz))
+print ('%10s\t%10s\t%10s\t%10s\t%10s\n' % ('Rax [N]', 'Ray [N]', 'Raz [N]', 'Rbx [N]', 'Rbz [N]'))
+print ('%10f\t%10f\t%10f\t%10f\t%10f\n' % (Rax, Ray, Raz, Rbx, Rbz))
 
-print('%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\n' % ('L.p.', 'y [mm]', 'Mg_yz(y) [Nm]', 'Mg_xy(y) [Nm]', 'Ms(y) [Nm]', 'Mg(y) [Nm]', 'Mz(y) [Nm]', 'd_teor [mm]')
+print('%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\n' % ('L.p.', 'y [mm]', 'Mg_yz(y) [Nm]', 'Mg_xy(y) [Nm]', 'Ms(y) [Nm]', 'Mg(y) [Nm]', 'Mz(y) [Nm]', 'd_teor [mm]'))
 
 #przedzial #1
-for n in range(N1)
- double y = 0.005*n
+for n in range(N1) :
+ y = n*0.005
  Mg_yz = -Q * y
  Mg_xy = 0.0
  Mg = sqrt(Mg_yz**2 + Mg_xy**2)
  #wyliczenie momentu zredukowanego
- if Mg >= 2 * Ms
+ if Mg >= 2 * Ms :
   Mz = sqrt(Mg**2 + 0.75 * Ms**2)
   d_teor = pow(10.2 * Mz / kg0, 0.333)
- elif
+ else :
   Mz = sqrt(Mg[i]**2 + 0.666 * Ms**2)
   d_teor = pow(5.1 *Mz / ksj, 0.333)
  M.append(n, y, Mg_yz, Mg_xy, Ms, Mg, Mz, d_teor)
 
 #przedzial #2
-for n in range (N2 - N1)
- double y = 0.005*(N1 + n)
+for n in range (N2 - N1) :
+ y = 0.005*(N1 + n)
  Mg_yz = (-Q + Raz) * y - Raz * l1
  Mg_xy = Rax * (y - l1)
  Mg = sqrt(Mg_yz**2 + Mg_xy[i]**2)
 
  #wyliczenie momentu zredukowanego
- if Mg >= 2 * Ms
+ if Mg >= 2 * Ms :
   Mz = sqrt(Mg**2 + 0.75*Ms**2)
   d_teor = pow(10.2*Mz / kg0, 0.333)
- elif
+ else :
   Mz = sqrt(Mg**2 + 0.666 * Ms**2)
   d_teor = pow(5.1*Mz / ksj, 0.333)
  M.append(n, y, Mg_yz, Mg_xy, Ms, Mg, Mz, d_teor)
 
 #przedzial #3
-for n  in range(N-N2)
+for n  in range(N-N2) :
  y = 0.005*(N2 + n)
  Mg_yz = (Raz + Rbz - Q)*y - Raz * l1 - Rbz * l2
  Mg_xy = (Rax + Rbx)*y - Rax * l1 - Rbx * l2
  Mg = sqrt(Mg_yz**2 + Mg_xy**2)
 
  #wyliczenie momentu zredukowanego
- if Mg >= 2 * Ms
+ if Mg >= 2 * Ms :
   Mz = sqrt(Mg[i]**2 + 0.75*Ms**2)
   d_teor = pow(10.2*Mz / kg0, 0.333)
- elif
+ else :
   Mz = sqrt(Mg[i]**2 + 0.666 * Ms**2)
-  d_teor = pow(5.1*Mz / ksj, 0.333);
+  d_teor = pow(5.1*Mz / ksj, 0.333)
  M.append(n, y, Mg_yz, Mg_xy, Ms, Mg, Mz, d_teor)
 
 
-for n in range (N)
- wyniki.write('%5d\t%10f\t%10f\t%10f\t%10f\t%10f\t%10f\t%10f\n') % (M.n, M.y*1000.0, M.Mg_yz, M.Mg_xy, M.Ms, M.Mg, M.Mz, M.d_teor*1000.0))
- print ('%5d\t%10f\t%10f\t%10f\t%10f\t%10f\t%10f\t%10f\n') % (M.n, M.y*1000.0, M.Mg_yz, M.Mg_xy, M.Ms, M.Mg, M.Mz, M.d_teor*1000.0))
+for n in range (N) :
+ wyniki.write('%10d\t%10f\t%10f\t%10f\t%10f\t%10f\t%10f\t%10f\n') % (M.n, M.y*1000.0, M.Mg_yz, M.Mg_xy, M.Ms, M.Mg, M.Mz, M.d_teor*1000.0))
+ print ('%10d\t%10f\t%10f\t%10f\t%10f\t%10f\t%10f\t%10f\n') % (M.n, M.y*1000.0, M.Mg_yz, M.Mg_xy, M.Ms, M.Mg, M.Mz, M.d_teor*1000.0))
 
 #wykres
 plt.figure()
